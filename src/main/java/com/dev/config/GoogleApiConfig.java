@@ -15,7 +15,6 @@ import com.google.api.services.admin.directory.DirectoryScopes;
 import com.google.api.services.admin.directory.model.User;
 import com.google.api.services.admin.directory.model.Users;
 import org.springframework.context.annotation.Configuration;
-//import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -118,6 +117,7 @@ public class GoogleApiConfig
     return credential;
   }
 
+  //TODO for test only, will be removed soon
   public static void main(String[] args) throws IOException
   {
     // Build a new authorized API client service.
