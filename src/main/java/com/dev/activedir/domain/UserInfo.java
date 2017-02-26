@@ -5,6 +5,7 @@ public class UserInfo {
     private String lastName;
     private String userName;
     private String password;
+    private String organizationUnit;
 
     public UserInfo() {}
 
@@ -38,5 +39,13 @@ public class UserInfo {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getOrganizationUnit() {
+        return organizationUnit;
+    }
+
+    public void setOrganizationUnit(String organizationUnit) {
+        this.organizationUnit = organizationUnit;
     }
 }

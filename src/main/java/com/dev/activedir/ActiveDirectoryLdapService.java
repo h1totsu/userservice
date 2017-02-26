@@ -1,72 +1,79 @@
 package com.dev.activedir;
 
-import com.dev.activedir.domain.ContextSettings;
 import com.dev.activedir.domain.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.*;
+import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
 
 @Component
 public class ActiveDirectoryLdapService {
     //Attribute names
-    private static final String AD_ATTR_NAME_TOKEN_GROUPS = "tokenGroups";
-    private static final String AD_ATTR_NAME_OBJECT_CLASS = "objectClass";
-    private static final String AD_ATTR_NAME_OBJECT_CATEGORY = "objectCategory";
-    private static final String AD_ATTR_NAME_MEMBER = "member";
-    private static final String AD_ATTR_NAME_MEMBER_OF = "memberOf";
-    private static final String AD_ATTR_NAME_DESCRIPTION = "description";
-    private static final String AD_ATTR_NAME_OBJECT_GUID = "objectGUID";
-    private static final String AD_ATTR_NAME_OBJECT_SID = "objectSid";
-    private static final String AD_ATTR_NAME_DISTINGUISHED_NAME = "distinguishedName";
-    private static final String AD_ATTR_NAME_CN = "cn";
-    private static final String AD_ATTR_NAME_USER_PRINCIPAL_NAME = "userPrincipalName";
-    private static final String AD_ATTR_NAME_USER_EMAIL = "mail";
-    private static final String AD_ATTR_NAME_GROUP_TYPE = "groupType";
-    private static final String AD_ATTR_NAME_SAM_ACCOUNT_TYPE = "sAMAccountType";
-    private static final String AD_ATTR_NAME_USER_ACCOUNT_CONTROL = "userAccountControl";
+    public static final String ATTRIBUTE_S_AM_ACCOUNT_NAME = "sAMAccountName";
+    public static final String ATTRIBUTE_OBJECT_CLASS = "objectClass";
+    public static final String ATTRIBUTE_TOP = "top";
+    public static final String ATTRIBUTE_PERSON = "person";
+    public static final String ATTRIBUTE_ORG_PERSON = "organizationalPerson";
+    public static final String ATTRIBUTE_USER = "user";
+    public static final String ATTRIBUTE_USER_NAME = "userPrincipalName";
+    public static final String ATTRIBUTE_GIVEN_NAME = "givenName";
+    public static final String ATTRIBUTE_CN = "cn";
+    public static final String ATTRIBUTE_SN = "sn";
+    public static final String ATTRIBUTE_UID = "uid";
+    public static final String ATTRIBUTE_USER_PASSWORD = "userpassword";
+    public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL = "userAccountControl";
 
-    @Value("${ad.domainRoot")
+    @Value("${ad.domainRoot}")
     private String domainRoot;
+
+    @Value("${ad.baseDN}")
+    private String domainName;
+
+    private final String ADMIN_NAME = "CN=Администратор,CN=Users,DC=corp,DC=h1totsu";
+
+    @Value("${ad.password}")
+    private String adminPassword;
+
+    @Value("${ad.url}")
+    private String domainUrl;
+
+    @Autowired
+    ActiveDirectoryConnectionUtils adConnectionUtils;
 
     /**
      * @param userInfo
-     * @param domainName
-     * @param ou         - organization unit
-     * @param ctx
      * @return - user created or not
      * @throws NamingException
      */
-    public boolean addUserToDomain(UserInfo userInfo, String domainName, String ou, LdapContext ctx)
+    public boolean addUserToDomain(UserInfo userInfo)
             throws NamingException {
 
         // Create a container set of attributes
         Attributes container = new BasicAttributes();
 
-        // Create the objectclass to add
-        Attribute objClasses = new BasicAttribute("objectClass");
-        objClasses.add("top");
-        objClasses.add("person");
-        objClasses.add("organizationalPerson");
-        objClasses.add("user");
+        // Create the object class to add
+        Attribute objClasses = new BasicAttribute(ATTRIBUTE_OBJECT_CLASS);
+        objClasses.add(ATTRIBUTE_TOP);
+        objClasses.add(ATTRIBUTE_PERSON);
+        objClasses.add(ATTRIBUTE_ORG_PERSON);
+        objClasses.add(ATTRIBUTE_USER);
 
         // Assign the username, first name, and last name
-        String cnValue = new StringBuffer(userInfo.getFirstName()).append(" ")
-                .append(userInfo.getLastName()).toString();
-        Attribute cn = new BasicAttribute("cn", cnValue);
-        Attribute sAMAccountName = new BasicAttribute("sAMAccountName", userInfo.getUserName());
-        Attribute principalName = new BasicAttribute("userPrincipalName", userInfo.getUserName()
+        String cnValue = userInfo.getUserName();
+        Attribute cn = new BasicAttribute(ATTRIBUTE_CN, userInfo.getUserName());
+        Attribute sAMAccountName = new BasicAttribute(ATTRIBUTE_S_AM_ACCOUNT_NAME, userInfo.getUserName());
+        Attribute principalName = new BasicAttribute(ATTRIBUTE_USER_NAME, userInfo.getUserName()
                 + "@" + domainName);
-        Attribute givenName = new BasicAttribute("givenName", userInfo.getFirstName());
-        Attribute sn = new BasicAttribute("sn", userInfo.getLastName());
-        Attribute uid = new BasicAttribute("uid", userInfo.getUserName());
+        Attribute givenName = new BasicAttribute(ATTRIBUTE_GIVEN_NAME, userInfo.getFirstName());
+        Attribute sn = new BasicAttribute(ATTRIBUTE_SN, userInfo.getLastName());
+        Attribute uid = new BasicAttribute(ATTRIBUTE_UID, userInfo.getUserName());
 
         // Add password
-        Attribute userPassword = new BasicAttribute("userpassword", userInfo.getPassword());
+        Attribute userPassword = new BasicAttribute(ATTRIBUTE_USER_PASSWORD, userInfo.getPassword());
 
         // Add these to the container
         container.put(objClasses);
@@ -80,7 +87,8 @@ public class ActiveDirectoryLdapService {
 
         // Create the entry
         try {
-            ctx.createSubcontext(getUserDN(cnValue, ou), container);
+            LdapContext ctx = adConnectionUtils.createContext(domainUrl, ADMIN_NAME, adminPassword);
+            ctx.createSubcontext(getUserDN(cnValue, userInfo.getOrganizationUnit()), container);
             return true;
         } catch (Exception e) {
             return false;

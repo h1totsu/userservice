@@ -10,6 +10,11 @@ import java.util.Hashtable;
 
 @Component
 public class ActiveDirectoryConnectionUtils {
+
+    public static final String LDAP_CONNECT_TIMEOUT = "com.sun.jndi.ldap.connect.timeout";
+    public static final String LDAP_ATTRIBUTES_BINARY = "java.naming.ldap.attributes.binary";
+    public static final String LDAP_CONNECT_POOL = "com.sun.jndi.ldap.connect.pool";
+
     public LdapContext createContext(String url, String user, String pass) {
         Hashtable<String, String> env = getProperties(url, user, pass);
         LdapContext ctx;
@@ -27,14 +32,14 @@ public class ActiveDirectoryConnectionUtils {
         env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
         env.put(Context.SECURITY_AUTHENTICATION, "simple");
         env.put(Context.REFERRAL, "ignore");
-        env.put("com.sun.jndi.ldap.connect.pool", "false");
+        env.put(LDAP_CONNECT_POOL, "false");
         //environment property to specify how long to wait for a pooled connection.
         // If you omit this property, the application will wait indefinitely.
-        env.put("com.sun.jndi.ldap.connect.timeout", "300000");
+        env.put(LDAP_CONNECT_TIMEOUT, "300000");
         env.put(Context.PROVIDER_URL, serverUrl);
         env.put(Context.SECURITY_PRINCIPAL, user);
         env.put(Context.SECURITY_CREDENTIALS, password);
-        env.put("java.naming.ldap.attributes.binary", "tokenGroups objectSid objectGUID");
+        env.put(LDAP_ATTRIBUTES_BINARY, "tokenGroups objectSid objectGUID");
         return env;
     }
 }
