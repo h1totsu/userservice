@@ -61,4 +61,4 @@ See also the list of [contributors](https://github.com/h1totsu/userservice/contr
 
 ## Acknowledgments
 
-* etc
+* JavaDoc https://h1totsu.github.io/userservice/
