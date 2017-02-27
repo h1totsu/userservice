@@ -1,10 +1,29 @@
 package com.dev.activedir.domain;
 
+/**
+ * Describe user information
+ */
 public class UserInfo {
+
+    /**
+     * user first name
+     */
     private String firstName;
+    /**
+     * user last name
+     */
     private String lastName;
+    /**
+     * new user username
+     */
     private String userName;
+    /**
+     * user password
+     */
     private String password;
+    /**
+     * organization unit, where user will be created
+     */
     private String organizationUnit;
 
     public UserInfo() {}

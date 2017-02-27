@@ -7,9 +7,11 @@ import org.springframework.stereotype.Component;
 
 import javax.naming.NamingException;
 import javax.naming.directory.*;
-import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
 
+/**
+ * Provides operations with Active Directory server
+ */
 @Component
 public class ActiveDirectoryLdapService {
     //Attribute names
@@ -27,27 +29,45 @@ public class ActiveDirectoryLdapService {
     public static final String ATTRIBUTE_USER_PASSWORD = "userpassword";
     public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL = "userAccountControl";
 
+    /**
+     * Full domain name. Populated from properties. Final value.
+     */
     @Value("${ad.domainRoot}")
     private String domainRoot;
 
+    /**
+     * Base domain name. Populated from properties. Final value.
+     */
     @Value("${ad.baseDN}")
     private String domainName;
 
+    /**
+     * Admin full name with user creation permissions. Final value.
+     */
     private final String ADMIN_NAME = "CN=Администратор,CN=Users,DC=corp,DC=h1totsu";
 
+    /**
+     * Admin password. Populated from properties. Final value.
+     */
     @Value("${ad.password}")
     private String adminPassword;
 
+    /**
+     * Active Directory DNS server url. Populated from properties. Final value.
+     */
     @Value("${ad.url}")
     private String domainUrl;
 
+    /**
+     * Active directory connection utils object
+     */
     @Autowired
     ActiveDirectoryConnectionUtils adConnectionUtils;
 
     /**
-     * @param userInfo
+     * @param userInfo - new user information
      * @return - user created or not
-     * @throws NamingException
+     * @throws NamingException - errors with connection to server
      */
     public boolean addUserToDomain(UserInfo userInfo)
             throws NamingException {
@@ -95,6 +115,12 @@ public class ActiveDirectoryLdapService {
         }
     }
 
+    /**
+     * Provides full Active Directory user domain name
+     * @param aUsername - new user username
+     * @param aOU - organization  unit, where user will be crated
+     * @return full Active Directory domain name
+     */
     private String getUserDN(String aUsername, String aOU) {
         return "cn=" + aUsername + ",ou=" + aOU + "," + domainRoot;
     }
